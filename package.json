@@ -1,0 +1,26 @@
+{
+  "name": "br-avm-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @avm/web",
+    "build": "npm run build -w @avm/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "node --test packages/valuation-core/test/regression.test.ts",
+    "lint": "npm run lint -w @avm/web"
+  },
+  "overrides": {
+    "postcss": "^8.5.15",
+    "next": {
+      "postcss": "^8.5.15"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
