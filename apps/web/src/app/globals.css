@@ -93,6 +93,13 @@ button {
   gap: 10px;
 }
 
+.topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--line);
+  margin: 0 4px;
+}
+
 .status-pill,
 .metric-pill {
   display: inline-flex;
@@ -208,13 +215,19 @@ button {
 .panel,
 .card {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--panel);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.04);
 }
 
 .panel {
-  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inner-box {
+  padding: 20px;
+  border-radius: 8px;
 }
 
 .panel-header {
@@ -225,12 +238,13 @@ button {
   margin-bottom: 14px;
 }
 
-.panel-header h2,
+.panel-header h3,
 .panel h3,
 .card h3 {
   margin: 0;
   font-size: 16px;
   line-height: 1.25;
+  font-weight: 700;
 }
 
 .panel-header p,
@@ -244,7 +258,7 @@ button {
 
 .main-grid {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 
 .anchor-section {
@@ -252,13 +266,18 @@ button {
 }
 
 .collapsible-section {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   outline: none;
+  transition: all 0.2s ease;
 }
 
-.collapsible-section:focus-visible .collapsible-header {
+.collapsible-section.is-expanded {
+  padding-bottom: 24px;
+}
+
+.collapsible-section:focus-visible {
   border-color: var(--focus);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
@@ -270,16 +289,25 @@ button {
   gap: 16px;
   width: 100%;
   color: var(--ink);
-  padding: 14px 16px;
+  padding: 20px 24px;
   text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.collapsible-section.is-expanded .collapsible-header {
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid var(--panel-soft);
+  margin-bottom: 20px;
 }
 
 .collapsible-header:hover,
 .collapsible-header:focus-visible {
-  border-color: rgba(15, 118, 110, 0.45);
+  background: var(--panel-soft);
   color: var(--brand-dark);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
 }
 
 .collapsible-copy {
@@ -291,8 +319,8 @@ button {
 .collapsible-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 17px;
   font-weight: 800;
   line-height: 1.25;
 }
@@ -301,18 +329,23 @@ button {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.45;
+  padding-left: 26px; /* align with text, bypassing icon */
 }
 
 .collapsible-icon {
   display: inline-flex;
   flex: 0 0 auto;
   color: var(--brand);
+  padding: 8px;
+  background: var(--panel-soft);
+  border-radius: 8px;
 }
 
 .collapsible-content {
   display: grid;
   gap: 18px;
   min-width: 0;
+  padding: 0 24px;
 }
 
 .two-column {

@@ -314,6 +314,13 @@ export function ProjectWorkspace() {
           </div>
         </div>
         <div className="topbar-actions">
+          <button className="nav-action" type="button" onClick={() => setAllSections(true)}>
+            Expandir tudo
+          </button>
+          <button className="nav-action" type="button" onClick={() => setAllSections(false)}>
+            Recolher tudo
+          </button>
+          <div className="topbar-divider" />
           <span className={targetVariable ? "status-pill success" : "status-pill warn"}>
             {targetVariable ? <CheckCircle2 className="icon" /> : <AlertTriangle className="icon" />}
             {targetVariable ? "Alvo definido" : "Sem alvo"}
@@ -335,14 +342,6 @@ export function ProjectWorkspace() {
             <div className="section-nav-header">
               <span>Fluxo da avaliação</span>
               <FileText className="icon" />
-            </div>
-            <div className="section-nav-actions">
-              <button className="nav-action" type="button" onClick={() => setAllSections(true)}>
-                Expandir tudo
-              </button>
-              <button className="nav-action" type="button" onClick={() => setAllSections(false)}>
-                Recolher tudo
-              </button>
             </div>
             {sectionNavItems.map((item, index) => (
               <a
@@ -380,37 +379,35 @@ export function ProjectWorkspace() {
               expanded={expandedSections.project}
               onToggle={() => setSectionExpanded("project", !expandedSections.project)}
             >
-              <div className="panel">
-                <div className="form-grid">
-                  <div className="field">
-                    <label htmlFor="project-name">Nome</label>
-                    <input id="project-name" value={project.name} onChange={(event) => updateProject("name", event.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="project-purpose">Finalidade</label>
-                    <input
-                      id="project-purpose"
-                      value={project.purpose}
-                      onChange={(event) => updateProject("purpose", event.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="project-date">Data</label>
-                    <input
-                      id="project-date"
-                      type="date"
-                      value={project.valuationDate}
-                      onChange={(event) => updateProject("valuationDate", event.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="project-responsible">Responsável</label>
-                    <input
-                      id="project-responsible"
-                      value={project.responsible}
-                      onChange={(event) => updateProject("responsible", event.target.value)}
-                    />
-                  </div>
+              <div className="form-grid">
+                <div className="field">
+                  <label htmlFor="project-name">Nome</label>
+                  <input id="project-name" value={project.name} onChange={(event) => updateProject("name", event.target.value)} />
+                </div>
+                <div className="field">
+                  <label htmlFor="project-purpose">Finalidade</label>
+                  <input
+                    id="project-purpose"
+                    value={project.purpose}
+                    onChange={(event) => updateProject("purpose", event.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="project-date">Data</label>
+                  <input
+                    id="project-date"
+                    type="date"
+                    value={project.valuationDate}
+                    onChange={(event) => updateProject("valuationDate", event.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="project-responsible">Responsável</label>
+                  <input
+                    id="project-responsible"
+                    value={project.responsible}
+                    onChange={(event) => updateProject("responsible", event.target.value)}
+                  />
                 </div>
               </div>
             </CollapsibleSection>
@@ -423,33 +420,31 @@ export function ProjectWorkspace() {
               expanded={expandedSections.subject}
               onToggle={() => setSectionExpanded("subject", !expandedSections.subject)}
             >
-              <div className="panel">
-                <div className="summary-list">
+              <div className="summary-list">
+                <div className="field">
+                  <label htmlFor="subject-address">Endereço</label>
+                  <input
+                    id="subject-address"
+                    value={subject.address}
+                    onChange={(event) => setSubject((current) => ({ ...current, address: event.target.value }))}
+                  />
+                </div>
+                <div className="form-grid">
                   <div className="field">
-                    <label htmlFor="subject-address">Endereço</label>
+                    <label htmlFor="subject-city">Cidade</label>
                     <input
-                      id="subject-address"
-                      value={subject.address}
-                      onChange={(event) => setSubject((current) => ({ ...current, address: event.target.value }))}
+                      id="subject-city"
+                      value={subject.city}
+                      onChange={(event) => setSubject((current) => ({ ...current, city: event.target.value }))}
                     />
                   </div>
-                  <div className="form-grid">
-                    <div className="field">
-                      <label htmlFor="subject-city">Cidade</label>
-                      <input
-                        id="subject-city"
-                        value={subject.city}
-                        onChange={(event) => setSubject((current) => ({ ...current, city: event.target.value }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="subject-state">UF</label>
-                      <input
-                        id="subject-state"
-                        value={subject.state}
-                        onChange={(event) => setSubject((current) => ({ ...current, state: event.target.value }))}
-                      />
-                    </div>
+                  <div className="field">
+                    <label htmlFor="subject-state">UF</label>
+                    <input
+                      id="subject-state"
+                      value={subject.state}
+                      onChange={(event) => setSubject((current) => ({ ...current, state: event.target.value }))}
+                    />
                   </div>
                 </div>
               </div>
@@ -465,10 +460,10 @@ export function ProjectWorkspace() {
             onToggle={() => setSectionExpanded("market-data", !expandedSections["market-data"])}
           >
             <div className="two-column">
-              <div className="panel">
+              <div className="card inner-box">
                 <div className="panel-header">
                   <div>
-                    <h2>Importação</h2>
+                    <h3>Importação</h3>
                     <p>Dados comparáveis usados na modelagem.</p>
                   </div>
                   <Upload className="icon" />
@@ -496,10 +491,10 @@ export function ProjectWorkspace() {
                 </div>
               </div>
 
-              <div className="panel">
+              <div className="card inner-box">
                 <div className="panel-header">
                   <div>
-                    <h2>Amostra</h2>
+                    <h3>Amostra</h3>
                     <p>{columns.length} colunas normalizadas.</p>
                   </div>
                   <Database className="icon" />
@@ -536,90 +531,88 @@ export function ProjectWorkspace() {
             expanded={expandedSections.variables}
             onToggle={() => setSectionExpanded("variables", !expandedSections.variables)}
           >
-            <div className="panel">
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Campo</th>
-                      <th>Papel</th>
-                      <th>Tipo</th>
-                      <th>Transformação base</th>
-                      <th>Sinal</th>
-                      <th>Obrigatória</th>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Campo</th>
+                    <th>Papel</th>
+                    <th>Tipo</th>
+                    <th>Transformação base</th>
+                    <th>Sinal</th>
+                    <th>Obrigatória</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variables.map((variable) => (
+                    <tr key={variable.id}>
+                      <td>
+                        <strong>{variable.label}</strong>
+                        <br />
+                        <span className="status-pill">{variable.sourceField}</span>
+                        {variable.notes ? (
+                          <>
+                            <br />
+                            <span>{variable.notes}</span>
+                          </>
+                        ) : null}
+                      </td>
+                      <td>
+                        <select
+                          value={variable.role}
+                          onChange={(event) => updateVariable(variable.id, { role: event.target.value as VariableRole })}
+                        >
+                          <option value="target">Alvo</option>
+                          <option value="feature">Explicativa</option>
+                          <option value="excluded">Excluída</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          value={variable.kind}
+                          onChange={(event) => updateVariable(variable.id, { kind: event.target.value as VariableKind })}
+                        >
+                          <option value="numeric">Numérica</option>
+                          <option value="binary">Binária</option>
+                          <option value="categorical">Categórica</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          value={variable.transform}
+                          disabled={variable.kind === "categorical"}
+                          onChange={(event) => updateVariable(variable.id, { transform: event.target.value as TransformKind })}
+                        >
+                          <option value="none">Nenhuma</option>
+                          <option value="log">Log</option>
+                          <option value="sqrt">Raiz</option>
+                          <option value="square">Quadrado</option>
+                          <option value="inverse">Inversa</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          value={variable.expectedSign ?? "none"}
+                          onChange={(event) =>
+                            updateVariable(variable.id, { expectedSign: event.target.value as ExpectedSign })
+                          }
+                        >
+                          <option value="none">Livre</option>
+                          <option value="positive">Positivo</option>
+                          <option value="negative">Negativo</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(variable.required)}
+                          onChange={(event) => updateVariable(variable.id, { required: event.target.checked })}
+                        />
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {variables.map((variable) => (
-                      <tr key={variable.id}>
-                        <td>
-                          <strong>{variable.label}</strong>
-                          <br />
-                          <span className="status-pill">{variable.sourceField}</span>
-                          {variable.notes ? (
-                            <>
-                              <br />
-                              <span>{variable.notes}</span>
-                            </>
-                          ) : null}
-                        </td>
-                        <td>
-                          <select
-                            value={variable.role}
-                            onChange={(event) => updateVariable(variable.id, { role: event.target.value as VariableRole })}
-                          >
-                            <option value="target">Alvo</option>
-                            <option value="feature">Explicativa</option>
-                            <option value="excluded">Excluída</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            value={variable.kind}
-                            onChange={(event) => updateVariable(variable.id, { kind: event.target.value as VariableKind })}
-                          >
-                            <option value="numeric">Numérica</option>
-                            <option value="binary">Binária</option>
-                            <option value="categorical">Categórica</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            value={variable.transform}
-                            disabled={variable.kind === "categorical"}
-                            onChange={(event) => updateVariable(variable.id, { transform: event.target.value as TransformKind })}
-                          >
-                            <option value="none">Nenhuma</option>
-                            <option value="log">Log</option>
-                            <option value="sqrt">Raiz</option>
-                            <option value="square">Quadrado</option>
-                            <option value="inverse">Inversa</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            value={variable.expectedSign ?? "none"}
-                            onChange={(event) =>
-                              updateVariable(variable.id, { expectedSign: event.target.value as ExpectedSign })
-                            }
-                          >
-                            <option value="none">Livre</option>
-                            <option value="positive">Positivo</option>
-                            <option value="negative">Negativo</option>
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={Boolean(variable.required)}
-                            onChange={(event) => updateVariable(variable.id, { required: event.target.checked })}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CollapsibleSection>
 
@@ -631,19 +624,17 @@ export function ProjectWorkspace() {
             expanded={expandedSections["subject-values"]}
             onToggle={() => setSectionExpanded("subject-values", !expandedSections["subject-values"])}
           >
-            <div className="panel">
-              <div className="form-grid">
-                {featureVariables.map((variable) => (
-                  <div className="field" key={variable.id}>
-                    <label htmlFor={`subject-${variable.id}`}>{variable.label}</label>
-                    <input
-                      id={`subject-${variable.id}`}
-                      value={valueToString(subject.values[variable.sourceField])}
-                      onChange={(event) => updateSubjectValue(variable.sourceField, event.target.value)}
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="form-grid">
+              {featureVariables.map((variable) => (
+                <div className="field" key={variable.id}>
+                  <label htmlFor={`subject-${variable.id}`}>{variable.label}</label>
+                  <input
+                    id={`subject-${variable.id}`}
+                    value={valueToString(subject.values[variable.sourceField])}
+                    onChange={(event) => updateSubjectValue(variable.sourceField, event.target.value)}
+                  />
+                </div>
+              ))}
             </div>
           </CollapsibleSection>
 
@@ -657,10 +648,10 @@ export function ProjectWorkspace() {
           >
             {modelRun ? (
               <div className="two-column">
-                <div className="panel">
+                <div className="card inner-box">
                   <div className="panel-header">
                     <div>
-                      <h2>Modelos candidatos</h2>
+                      <h3>Modelos candidatos</h3>
                       <p>
                         {acceptedCount} aceitos de {modelRun.candidates.length} avaliados.
                       </p>
@@ -707,9 +698,9 @@ export function ProjectWorkspace() {
                 />
               </div>
             ) : (
-              <div className="panel empty-state">
+              <div className="empty-state">
                 <div>
-                  <h2>Nenhum modelo rodado</h2>
+                  <h3>Nenhum modelo rodado</h3>
                   <p>Rode os modelos para comparar candidatos, revisar diagnósticos e aprovar a equação.</p>
                 </div>
                 <button className="btn primary" disabled={status === "running"} onClick={runModeling}>
@@ -729,10 +720,10 @@ export function ProjectWorkspace() {
             onToggle={() => setSectionExpanded("report", !expandedSections.report)}
           >
             {approvedCandidate ? (
-              <div className="panel">
+              <div className="card inner-box report-box">
                 <div className="panel-header">
                   <div>
-                    <h2>Relatório</h2>
+                    <h3>Relatório</h3>
                     <p>Snapshot imutável do modelo aprovado.</p>
                   </div>
                   <FileText className="icon" />
@@ -769,9 +760,9 @@ export function ProjectWorkspace() {
                 ) : null}
               </div>
             ) : (
-              <div className="panel empty-state">
+              <div className="empty-state">
                 <div>
-                  <h2>Relatório pendente</h2>
+                  <h3>Relatório pendente</h3>
                   <p>Aprove um modelo aceito para gerar o snapshot e exportar o relatório.</p>
                 </div>
                 <FileText className="icon" />
@@ -808,11 +799,11 @@ function CollapsibleSection({
   const contentId = `${id}-content`;
 
   return (
-    <section className="collapsible-section anchor-section" id={id} tabIndex={-1}>
+    <section className={`panel collapsible-section anchor-section ${expanded ? "is-expanded" : ""}`} id={id} tabIndex={-1}>
       <button
         aria-controls={contentId}
         aria-expanded={expanded}
-        className="panel collapsible-header"
+        className="collapsible-header"
         onClick={onToggle}
         type="button"
       >
