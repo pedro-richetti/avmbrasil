@@ -354,6 +354,12 @@ button {
   gap: 18px;
 }
 
+.models-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.35fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
 .summary-list {
   display: grid;
   gap: 10px;
@@ -603,7 +609,8 @@ tr:last-child td {
 
 @media (max-width: 1080px) {
   .layout,
-  .two-column {
+  .two-column,
+  .models-grid {
     grid-template-columns: 1fr;
   }
 
