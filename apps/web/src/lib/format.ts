@@ -55,3 +55,6 @@ export function parseFormValue(value: string): DataValue {
 
   return trimmed;
 }
+export function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(2)}%`;
+}
