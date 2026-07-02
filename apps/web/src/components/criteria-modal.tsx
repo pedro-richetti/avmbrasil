@@ -3,7 +3,7 @@
 import type { CandidateModel, RulePackCheck, ValuationInterval } from "@avm/domain";
 import { X, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatNumber, formatPercent } from "@/lib/format";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Line } from "recharts";
 
 interface CriteriaModalProps {
   check: RulePackCheck | null;
@@ -142,22 +142,25 @@ function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck
       );
     case "residual-normality":
       return (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Banda</th><th>% Obtida</th><th>Mínimo</th><th>Máximo</th></tr>
-            </thead>
-            <tbody>
-              {extra.studentizedResidualsBands.map(b => (
-                <tr key={b.label}>
-                  <td>{b.label}</td>
-                  <td>{formatPercent(b.percent / 100)}</td>
-                  <td>{formatPercent(b.min / 100)}</td>
-                  <td>{formatPercent(b.max / 100)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Banda</th><th>% Obtida</th><th>Mínimo</th><th>Máximo</th></tr>
+              </thead>
+              <tbody>
+                {extra.studentizedResidualsBands.map(b => (
+                  <tr key={b.label}>
+                    <td>{b.label}</td>
+                    <td>{formatPercent(b.percent / 100)}</td>
+                    <td>{formatPercent(b.min / 100)}</td>
+                    <td>{formatPercent(b.max / 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ResidualNormalityChart residuals={candidate.diagnosticPoints.map(p => p.residual)} />
         </div>
       );
     case "term-significance":
@@ -279,6 +282,70 @@ function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck
     default:
       return <p>Nenhum detalhe adicional configurado.</p>;
   }
+}
+
+function ResidualNormalityChart({ residuals }: { residuals: number[] }) {
+  if (residuals.length === 0) return null;
+
+  const min = Math.min(...residuals);
+  const max = Math.max(...residuals);
+
+  // If min == max, we can't really make 6 meaningful bins
+  const w = max > min ? (max - min) / 6 : 1;
+  const start = max > min ? min : min - 3;
+
+  const bins = Array.from({ length: 6 }, (_, i) => ({
+    min: start + i * w,
+    max: start + (i + 1) * w,
+    mid: start + (i + 0.5) * w,
+    count: 0
+  }));
+
+  residuals.forEach(r => {
+    let binIdx = Math.floor((r - start) / w);
+    if (binIdx >= 6) binIdx = 5;
+    if (binIdx < 0) binIdx = 0;
+    const bin = bins[binIdx];
+    if (bin) {
+      bin.count++;
+    }
+  });
+
+  const mean = residuals.reduce((a, b) => a + b, 0) / residuals.length;
+  const variance = residuals.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / residuals.length;
+  const stdDev = Math.sqrt(variance);
+
+  const N = residuals.length;
+
+  const normalDensity = (x: number) => {
+    if (stdDev === 0) return 0;
+    return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+  };
+
+  const data = bins.map(b => {
+    const normalFreq = stdDev > 0 ? normalDensity(b.mid) * N * w : 0;
+    return {
+      name: `${formatNumber(b.min)} a ${formatNumber(b.max)}`,
+      mid: b.mid,
+      Frequência: b.count,
+      'Curva Normal': normalFreq
+    };
+  });
+
+  return (
+    <div style={{ height: 300, width: '100%', marginTop: '20px' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6b7280' }} />
+          <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
+          <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+          <Bar dataKey="Frequência" fill="blue" />
+          <Line type="monotone" dataKey="Curva Normal" stroke="green" strokeWidth={2} dot={false} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
 }
 
 function DiagnosticChart({ checkId, candidate }: { checkId: string; candidate: CandidateModel }) {
