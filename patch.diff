@@ -1,0 +1,14 @@
+--- apps/web/src/components/project-workspace.tsx
++++ apps/web/src/components/project-workspace.tsx
+@@ -880,10 +880,6 @@
+
+       <div style={{ height: 14 }} />
+       <div className="equation">{candidate.equation}</div>
+-
+-      <div style={{ height: 14 }} />
+-      <div className="two-column">
+-        <DiagnosticScatter candidate={candidate} mode="residuals" />
+-        <DiagnosticScatter candidate={candidate} mode="influence" />
+-      </div>
+
+       <div style={{ height: 14 }} />

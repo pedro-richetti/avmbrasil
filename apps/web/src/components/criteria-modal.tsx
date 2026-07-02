@@ -3,6 +3,7 @@
 import type { CandidateModel, RulePackCheck, ValuationInterval } from "@avm/domain";
 import { X, CheckCircle2, AlertTriangle } from "lucide-react";
 import { formatNumber, formatPercent } from "@/lib/format";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface CriteriaModalProps {
   check: RulePackCheck | null;
@@ -274,8 +275,80 @@ function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck
     case "cook-distance-over-one":
     case "influence":
     case "studentized-residuals":
-      return <p>Verifique o gráfico de Resíduos e Influência na página principal.</p>;
+      return <DiagnosticChart checkId={check.id} candidate={candidate} />;
     default:
       return <p>Nenhum detalhe adicional configurado.</p>;
   }
+}
+
+function DiagnosticChart({ checkId, candidate }: { checkId: string; candidate: CandidateModel }) {
+  const points = candidate.diagnosticPoints;
+  const isResiduals = checkId === "studentized-residuals";
+
+  const chartData = points.map(p => ({
+    index: p.index + 1,
+    fitted: p.fitted,
+    studentizedResidual: p.studentizedResidual,
+    cooksDistance: p.cooksDistance,
+  }));
+
+  const yAxisDataKey = isResiduals ? "studentizedResidual" : "cooksDistance";
+  const xAxisDataKey = isResiduals ? "fitted" : "index";
+  const yAxisLabel = isResiduals ? "Resíduo Studentizado" : "Distância de Cook";
+  const xAxisLabel = isResiduals ? "Valor Ajustado" : "Índice (n)";
+  const scatterColor = isResiduals ? "#0f766e" : "#b45309";
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ height: 300, width: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              type="number"
+              dataKey={xAxisDataKey}
+              name={xAxisLabel}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              domain={['auto', 'auto']}
+            />
+            <YAxis
+              type="number"
+              dataKey={yAxisDataKey}
+              name={yAxisLabel}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip
+              cursor={{ strokeDasharray: '3 3' }}
+              contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+            />
+            <Scatter name={yAxisLabel} data={chartData} fill={scatterColor} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Índice</th>
+              <th>Valor Ajustado</th>
+              <th>Resíduo Studentizado</th>
+              <th>Distância de Cook</th>
+            </tr>
+          </thead>
+          <tbody>
+            {points.map(p => (
+              <tr key={p.index}>
+                <td>{p.index + 1}</td>
+                <td>{formatNumber(p.fitted)}</td>
+                <td>{formatNumber(p.studentizedResidual)}</td>
+                <td>{formatNumber(p.cooksDistance)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

@@ -879,12 +879,6 @@ function ModelDetail({
       <div className="equation">{candidate.equation}</div>
 
       <div style={{ height: 14 }} />
-      <div className="two-column">
-        <DiagnosticScatter candidate={candidate} mode="residuals" />
-        <DiagnosticScatter candidate={candidate} mode="influence" />
-      </div>
-
-      <div style={{ height: 14 }} />
       <div className="table-wrap">
         <table>
           <thead>
@@ -953,53 +947,5 @@ function Metric({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
-  );
-}
-
-function DiagnosticScatter({ candidate, mode }: { candidate: CandidateModel; mode: "residuals" | "influence" }) {
-  const points = candidate.diagnosticPoints;
-  const width = 640;
-  const height = 220;
-  const padding = 28;
-  const xValues = points.map((point) => (mode === "residuals" ? point.fitted : point.index + 1));
-  const yValues = points.map((point) => (mode === "residuals" ? point.residual : point.cooksDistance));
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues, 0);
-  const maxY = Math.max(...yValues, 0);
-  const xSpan = Math.max(maxX - minX, 1);
-  const ySpan = Math.max(maxY - minY, 1);
-
-  function xScale(value: number) {
-    return padding + ((value - minX) / xSpan) * (width - padding * 2);
-  }
-
-  function yScale(value: number) {
-    return height - padding - ((value - minY) / ySpan) * (height - padding * 2);
-  }
-
-  return (
-    <svg className="chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={mode === "residuals" ? "Resíduos" : "Influência"}>
-      <rect x="0" y="0" width={width} height={height} fill="#fff" rx="8" />
-      <line x1={padding} x2={width - padding} y1={yScale(0)} y2={yScale(0)} stroke="#d9dee7" />
-      <line x1={padding} x2={padding} y1={padding} y2={height - padding} stroke="#d9dee7" />
-      <text x={padding} y={18} fill="#667085" fontSize="12">
-        {mode === "residuals" ? "Resíduos x ajustados" : "Distância de Cook"}
-      </text>
-      {points.map((point) => {
-        const x = mode === "residuals" ? point.fitted : point.index + 1;
-        const y = mode === "residuals" ? point.residual : point.cooksDistance;
-        return (
-          <circle
-            key={`${mode}-${point.index}`}
-            cx={xScale(x)}
-            cy={yScale(y)}
-            r={4}
-            fill={mode === "residuals" ? "#0f766e" : "#b45309"}
-            opacity={0.86}
-          />
-        );
-      })}
-    </svg>
   );
 }
