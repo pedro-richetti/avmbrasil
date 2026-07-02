@@ -137,6 +137,28 @@ export interface ValuationInterval {
   confidenceLevel: number;
 }
 
+export interface ExtraDiagnostics {
+  n: number;
+  p: number;
+  degreesOfFreedom: number;
+  duplicateData: string[];
+  staleData: string[];
+  missingEssentialVariables: string[];
+  micronumerosityViolations: string[];
+  r2: number;
+  fStatistic: number;
+  fPValue: number;
+  studentizedResidualsBands: Array<{ label: string; percent: number; min: number; max: number }>;
+  termTStatistics: Array<{ label: string; value: number }>;
+  tStudentDominant: string | null;
+  expectedSignViolations: string[];
+  heteroscedasticityR2: number;
+  maxRelativeResidual: number;
+  vifs: Array<{ label: string; value: number }>;
+  correlationMatrix: { labels: string[]; matrix: number[][] };
+  projectionInflexionTerms: string[];
+}
+
 export interface CandidateModel {
   id: EntityId;
   equation: string;
@@ -149,6 +171,7 @@ export interface CandidateModel {
   diagnostics: DiagnosticSummary;
   diagnosticPoints: DiagnosticPoint[];
   valuation?: ValuationInterval;
+  extraDiagnostics?: ExtraDiagnostics;
 }
 
 export interface ModelRun {

@@ -1,0 +1,281 @@
+"use client";
+
+import type { CandidateModel, RulePackCheck, ValuationInterval } from "@avm/domain";
+import { X, CheckCircle2, AlertTriangle } from "lucide-react";
+import { formatNumber, formatPercent } from "@/lib/format";
+
+interface CriteriaModalProps {
+  check: RulePackCheck | null;
+  candidate: CandidateModel | null;
+  valuation: ValuationInterval | undefined;
+  onClose: () => void;
+}
+
+export function CriteriaModal({ check, candidate, valuation, onClose }: CriteriaModalProps) {
+  if (!check || !candidate) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose} style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+    }}>
+      <div className="modal-content card" onClick={(e) => e.stopPropagation()} style={{
+        backgroundColor: '#fff', borderRadius: 8, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: 0
+      }}>
+        <div className="panel-header" style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{check.label}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <span className={check.status === "pass" ? "status-pill success" : "status-pill warn"} style={{ margin: 0 }}>
+                {check.status === "pass" ? <CheckCircle2 className="icon" size={14}/> : <AlertTriangle className="icon" size={14}/>}
+                {check.status}
+              </span>
+              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Limiar: {check.threshold}</span>
+            </div>
+          </div>
+          <button className="nav-action" onClick={onClose} style={{ padding: 4 }}><X size={24} /></button>
+        </div>
+        <div style={{ padding: '20px' }}>
+          <p style={{ marginBottom: 24, fontSize: '1rem', color: '#374151' }}>{check.message}</p>
+          <CriteriaContent check={check} candidate={candidate} valuation={valuation} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck, candidate: CandidateModel, valuation: ValuationInterval | undefined }) {
+  const extra = candidate.extraDiagnostics;
+  if (!extra) return <div className="empty-state">Sem dados extras disponíveis.</div>;
+
+  switch (check.id) {
+    case "variables-used":
+    case "observations-used":
+    case "degrees-of-freedom":
+    case "observation-parameter-ratio":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>Observações (n)</span>
+            <strong>{extra.n}</strong>
+          </div>
+          <div className="metric-box">
+            <span>Variáveis (p)</span>
+            <strong>{extra.p}</strong>
+          </div>
+          <div className="metric-box">
+            <span>Graus de Liberdade</span>
+            <strong>{extra.degreesOfFreedom}</strong>
+          </div>
+          <div className="metric-box">
+            <span>Razão (n/p)</span>
+            <strong>{formatNumber(extra.n / extra.p)}</strong>
+          </div>
+        </div>
+      );
+    case "duplicate-data":
+      return (
+        <div>
+          {extra.duplicateData.length > 0 ? (
+            <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+              {extra.duplicateData.map(d => <li key={d}>{d}</li>)}
+            </ul>
+          ) : <p>Nenhum dado duplicado encontrado.</p>}
+        </div>
+      );
+    case "stale-data":
+      return (
+        <div>
+          {extra.staleData.length > 0 ? (
+            <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+              {extra.staleData.map(d => <li key={d}>{d}</li>)}
+            </ul>
+          ) : <p>Nenhum dado obsoleto encontrado.</p>}
+        </div>
+      );
+    case "essential-variables-tested":
+      return (
+        <div>
+          {extra.missingEssentialVariables.length > 0 ? (
+            <div>
+              <p>Variáveis ausentes:</p>
+              <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+                {extra.missingEssentialVariables.map(d => <li key={d}>{d}</li>)}
+              </ul>
+            </div>
+          ) : <p>Todas as variáveis essenciais estão presentes.</p>}
+        </div>
+      );
+    case "micronumerosity":
+      return (
+        <div>
+          {extra.micronumerosityViolations.length > 0 ? (
+            <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+              {extra.micronumerosityViolations.map(d => <li key={d}>{d}</li>)}
+            </ul>
+          ) : <p>Não há violações de micronumerosidade.</p>}
+        </div>
+      );
+    case "r2-minimum":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>R²</span>
+            <strong>{formatNumber(extra.r2)}</strong>
+          </div>
+        </div>
+      );
+    case "global-significance":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>Estatística F</span>
+            <strong>{formatNumber(extra.fStatistic)}</strong>
+          </div>
+          <div className="metric-box">
+            <span>p-valor F</span>
+            <strong>{formatNumber(extra.fPValue)}</strong>
+          </div>
+        </div>
+      );
+    case "residual-normality":
+      return (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Banda</th><th>% Obtida</th><th>Mínimo</th><th>Máximo</th></tr>
+            </thead>
+            <tbody>
+              {extra.studentizedResidualsBands.map(b => (
+                <tr key={b.label}>
+                  <td>{b.label}</td>
+                  <td>{formatPercent(b.percent / 100)}</td>
+                  <td>{formatPercent(b.min / 100)}</td>
+                  <td>{formatPercent(b.max / 100)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "term-significance":
+    case "student-t-dominance":
+      return (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Variável</th><th>T de Student</th></tr>
+            </thead>
+            <tbody>
+              {extra.termTStatistics.map(t => (
+                <tr key={t.label} style={{ fontWeight: extra.tStudentDominant === t.label ? 'bold' : 'normal' }}>
+                  <td>{t.label} {extra.tStudentDominant === t.label && "(Dominante)"}</td>
+                  <td>{formatNumber(t.value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "expected-signs":
+      return (
+        <div>
+          {extra.expectedSignViolations.length > 0 ? (
+            <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+              {extra.expectedSignViolations.map(d => <li key={d}>{d}</li>)}
+            </ul>
+          ) : <p>Todos os sinais esperados estão corretos.</p>}
+        </div>
+      );
+    case "heteroscedasticity":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>R² de Tendência</span>
+            <strong>{formatNumber(extra.heteroscedasticityR2)}</strong>
+          </div>
+        </div>
+      );
+    case "max-relative-residual":
+    case "max-linear-residual-variation":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>Máx Resíduo Relativo</span>
+            <strong>{formatPercent(extra.maxRelativeResidual / 100)}</strong>
+          </div>
+        </div>
+      );
+    case "multicollinearity-vif":
+      return (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Variável</th><th>VIF</th></tr>
+            </thead>
+            <tbody>
+              {extra.vifs.map(v => (
+                <tr key={v.label}>
+                  <td>{v.label}</td>
+                  <td>{formatNumber(v.value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "independent-strong-correlation":
+    case "dependent-strong-correlation":
+      return (
+        <div className="table-wrap" style={{ overflowX: 'auto' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Var</th>
+                {extra.correlationMatrix.labels.map(l => <th key={l}>{l.substring(0,6)}...</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {extra.correlationMatrix.matrix.map((row, i) => (
+                <tr key={i}>
+                  <td><strong>{extra.correlationMatrix.labels[i]?.substring(0,6)}...</strong></td>
+                  {row.map((val, j) => (
+                    <td key={j} style={{ backgroundColor: Math.abs(val) > 0.8 && i !== j ? '#fee2e2' : 'transparent' }}>
+                      {formatNumber(val)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "projection-inflection":
+      return (
+        <div>
+          {extra.projectionInflexionTerms.length > 0 ? (
+            <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
+              {extra.projectionInflexionTerms.map(d => <li key={d}>{d}</li>)}
+            </ul>
+          ) : <p>Nenhum termo com risco de inflexão.</p>}
+        </div>
+      );
+    case "projection-interval-amplitude":
+    case "projection-extrapolation":
+      return (
+        <div className="metrics-grid">
+          <div className="metric-box">
+            <span>Amplitude (Intervalo)</span>
+            <strong>{valuation ? formatPercent(Math.abs((valuation.upper - valuation.lower) / valuation.estimate)) : "N/A"}</strong>
+          </div>
+        </div>
+      );
+    case "cook-distance-over-one":
+    case "influence":
+    case "studentized-residuals":
+      return <p>Verifique o gráfico de Resíduos e Influência na página principal.</p>;
+    default:
+      return <p>Nenhum detalhe adicional configurado.</p>;
+  }
+}

@@ -31,6 +31,8 @@ import type {
 import { parseDelimitedMarketData, rowsFromObjects } from "@/lib/imports";
 import { formatCurrency, formatNumber, parseFormValue, valueToString } from "@/lib/format";
 import { sampleComparables, sampleCsv, sampleSubject, sampleVariables } from "@/lib/sample-data";
+import { CriteriaModal } from "./criteria-modal";
+import type { RulePackCheck } from "@avm/domain";
 
 type ProjectState = {
   name: string;
@@ -86,6 +88,7 @@ export function ProjectWorkspace() {
   const [status, setStatus] = useState<"idle" | "running" | "reporting">("idle");
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<SectionId, boolean>>(() => buildExpandedSections(true));
+  const [analyzedCheck, setAnalyzedCheck] = useState<RulePackCheck | null>(null);
 
   const selectedCandidate = useMemo(
     () => modelRun?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null,
@@ -695,6 +698,7 @@ export function ProjectWorkspace() {
                       setReport(null);
                     }
                   }}
+                  onAnalyzeCheck={(check) => setAnalyzedCheck(check)}
                 />
               </div>
             ) : (
@@ -770,6 +774,12 @@ export function ProjectWorkspace() {
             )}
           </CollapsibleSection>
         </section>
+        <CriteriaModal
+          check={analyzedCheck}
+          candidate={selectedCandidate}
+          valuation={selectedCandidate?.valuation}
+          onClose={() => setAnalyzedCheck(null)}
+        />
       </div>
     </main>
   );
@@ -829,11 +839,13 @@ function CollapsibleSection({
 function ModelDetail({
   candidate,
   approved,
-  onApprove
+  onApprove,
+  onAnalyzeCheck
 }: {
   candidate: CandidateModel | null;
   approved: boolean;
   onApprove: () => void;
+  onAnalyzeCheck: (check: RulePackCheck) => void;
 }) {
   if (!candidate) {
     return (
@@ -907,6 +919,7 @@ function ModelDetail({
               <th>Status</th>
               <th>Valor</th>
               <th>Limite</th>
+              <th>Ação</th>
             </tr>
           </thead>
           <tbody>
@@ -922,6 +935,9 @@ function ModelDetail({
                 </td>
                 <td>{check.value ?? "-"}</td>
                 <td>{check.threshold ?? "-"}</td>
+                <td>
+                  <button className="btn" onClick={() => onAnalyzeCheck(check)}>Analisar</button>
+                </td>
               </tr>
             ))}
           </tbody>

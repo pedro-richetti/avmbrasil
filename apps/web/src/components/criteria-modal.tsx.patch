@@ -1,0 +1,82 @@
+--- apps/web/src/components/project-workspace.tsx
++++ apps/web/src/components/project-workspace.tsx
+@@ -2,7 +2,7 @@
+
+ import { type ReactNode, useMemo, useState } from "react";
+ import {
+   AlertTriangle,
+   BarChart3,
+   Calculator,
+   ChevronDown,
+@@ -22,6 +22,7 @@
+ import { parseDelimitedMarketData, rowsFromObjects } from "@/lib/imports";
+ import { formatCurrency, formatNumber, parseFormValue, valueToString } from "@/lib/format";
+ import { sampleComparables, sampleCsv, sampleSubject, sampleVariables } from "@/lib/sample-data";
++import { CriteriaModal } from "./criteria-modal";
++import type { RulePackCheck } from "@avm/domain";
+
+ type ProjectState = {
+   name: string;
+@@ -87,6 +88,7 @@
+   const [status, setStatus] = useState<"idle" | "running" | "reporting">("idle");
+   const [error, setError] = useState<string | null>(null);
+   const [expandedSections, setExpandedSections] = useState<Record<SectionId, boolean>>(() => buildExpandedSections(true));
++  const [analyzedCheck, setAnalyzedCheck] = useState<RulePackCheck | null>(null);
+
+   const selectedCandidate = useMemo(
+     () => modelRun?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null,
+@@ -522,6 +524,7 @@
+                       setReport(null);
+                     }
+                   }}
++                  onAnalyzeCheck={(check) => setAnalyzedCheck(check)}
+                 />
+               </div>
+             ) : (
+@@ -590,6 +593,12 @@
+             )}
+           </CollapsibleSection>
+         </section>
++        <CriteriaModal
++          check={analyzedCheck}
++          candidate={selectedCandidate}
++          valuation={selectedCandidate?.valuation}
++          onClose={() => setAnalyzedCheck(null)}
++        />
+       </div>
+     </main>
+   );
+@@ -638,10 +647,12 @@
+ function ModelDetail({
+   candidate,
+   approved,
+-  onApprove
++  onApprove,
++  onAnalyzeCheck
+ }: {
+   candidate: CandidateModel | null;
+   approved: boolean;
+   onApprove: () => void;
++  onAnalyzeCheck: (check: RulePackCheck) => void;
+ }) {
+   if (!candidate) {
+     return (
+@@ -717,17 +728,19 @@
+           </thead>
+           <tbody>
+             {candidate.ruleChecks.map((check) => (
+               <tr key={check.id}>
+                 <td>
+                   <strong>{check.label}</strong>
+                   <br />
+                   <span>{check.message}</span>
+                 </td>
+                 <td>
+                   <span className={check.status === "pass" ? "status-pill success" : "status-pill warn"}>{check.status}</span>
+                 </td>
+                 <td>{check.value ?? "-"}</td>
+                 <td>{check.threshold ?? "-"}</td>
++                <td><button className="btn" onClick={() => onAnalyzeCheck(check)}>Analisar</button></td>
+               </tr>
+             ))}
+           </tbody>

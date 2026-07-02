@@ -235,7 +235,7 @@ function buildCandidate(input: {
   try {
     const fit = fitLinearModel(input.comparables, input.target, terms);
     const valuation = input.subjectValues ? predictSubjectValue(fit, input.subjectValues) : undefined;
-    const ruleChecks = evaluateDraftRules(fit, valuation, input.subjectValues);
+    const { checks: ruleChecks, extraDiagnostics } = evaluateDraftRules(fit, valuation, input.subjectValues);
     const rejectionReasons = ruleChecks.filter((check) => check.status === "fail").map((check) => check.message);
     const accepted = rejectionReasons.length === 0;
     const score = scoreCandidate(fit, accepted, valuation, ruleChecks);
@@ -249,7 +249,8 @@ function buildCandidate(input: {
       ruleChecks,
       coefficients: fit.termCoefficients,
       diagnostics: fit.diagnostics,
-      diagnosticPoints: fit.diagnosticPoints
+      diagnosticPoints: fit.diagnosticPoints,
+      extraDiagnostics
     };
 
     if (valuation) {
@@ -410,7 +411,7 @@ function evaluateDraftRules(
   valuation: ValuationInterval | undefined,
   subjectValues: SubjectProperty["values"] | undefined,
   thresholds: DraftRuleThresholds = defaultDraftThresholds
-): RulePackCheck[] {
+) {
   const checks: RulePackCheck[] = [];
   const ratio = fit.n / fit.p;
   const degreesOfFreedom = fit.n - fit.p;
@@ -776,7 +777,30 @@ function evaluateDraftRules(
     })
   );
 
-  return checks;
+  return {
+    checks,
+    extraDiagnostics: {
+      n: fit.n,
+      p: fit.p,
+      degreesOfFreedom,
+      duplicateData: duplicateSummary.examples,
+      staleData: staleSummary.staleIds || [],
+      missingEssentialVariables: essentialSummary.missing,
+      micronumerosityViolations: micronumerosity.violations,
+      r2: fit.diagnostics.r2,
+      fStatistic: fit.diagnostics.fStatistic,
+      fPValue: fit.diagnostics.fPValue,
+      studentizedResidualsBands: normality.bands || [],
+      termTStatistics: fit.termCoefficients.filter((c) => c.term !== "intercept").map(c => ({ label: c.label, value: c.tStatistic })),
+      tStudentDominant: tDominance.dominantLabel || null,
+      expectedSignViolations: signIssues,
+      heteroscedasticityR2: heteroscedasticity.r2,
+      maxRelativeResidual: relativeResidual.percent,
+      vifs: calculateVif(fit.x).slice(1).map((value, idx) => ({ label: fit.terms[idx]?.label ?? `x${idx+1}`, value })),
+      correlationMatrix: calculateCorrelationMatrix(fit.x, fit.terms),
+      projectionInflexionTerms: inflexionRisk.terms
+    }
+  };
 }
 
 function duplicateObservationSummary(fit: FittedModel): { count: number; examples: string[] } {
@@ -808,7 +832,7 @@ function comparableIdentityKey(comparable: MarketComparable): string {
   return `values:${JSON.stringify(comparable.values, Object.keys(comparable.values).sort())}`;
 }
 
-function staleObservationSummary(fit: FittedModel): { status: RulePackCheck["status"]; message: string; value: string } {
+function staleObservationSummary(fit: FittedModel): { status: RulePackCheck["status"]; message: string; value: string; staleIds?: string[] } {
   const now = Date.now();
   const datedObservations = fit.observations.flatMap((observation) => {
     if (!observation.comparable.capturedAt) {
@@ -830,6 +854,7 @@ function staleObservationSummary(fit: FittedModel): { status: RulePackCheck["sta
   const stale = datedObservations.filter((item) => monthDifference(item.timestamp, now) > 24);
 
   return {
+    staleIds: stale.map(item => item.id),
     status: stale.length === 0 ? "pass" : "fail",
     message:
       stale.length === 0
@@ -924,7 +949,7 @@ function micronumerosityMinimum(n: number): number {
   return 10;
 }
 
-function residualNormalitySummary(fit: FittedModel): { passed: boolean; value: string; message: string } {
+function residualNormalitySummary(fit: FittedModel): { passed: boolean; value: string; message: string; bands: Array<{ label: string; percent: number; min: number; max: number }> } {
   const bands = [
     { label: "68%", limit: 1, min: 64, max: 75 },
     { label: "90%", limit: 1.645, min: 89, max: 95 },
@@ -941,6 +966,7 @@ function residualNormalitySummary(fit: FittedModel): { passed: boolean; value: s
   const failed = values.filter((item) => item.percent < item.min || item.percent > item.max);
 
   return {
+    bands: values,
     passed: failed.length === 0,
     value: values.map((item) => `${item.label}: ${formatPercent(item.percent)}`).join("; "),
     message:
@@ -952,7 +978,7 @@ function residualNormalitySummary(fit: FittedModel): { passed: boolean; value: s
   };
 }
 
-function studentTDominanceSummary(fit: FittedModel): { dominant: boolean; value: string; message: string } {
+function studentTDominanceSummary(fit: FittedModel): { dominant: boolean; value: string; message: string; dominantLabel?: string } {
   const tValues = fit.termCoefficients
     .filter((coefficient) => coefficient.term !== "intercept")
     .map((coefficient) => ({ label: coefficient.label, value: Math.abs(coefficient.tStatistic) }));
@@ -972,6 +998,7 @@ function studentTDominanceSummary(fit: FittedModel): { dominant: boolean; value:
 
   return {
     dominant,
+    ...(dominant && max ? { dominantLabel: max.label } : {}),
     value: max ? `${max.label}: ${round(max.value, 3)} / demais ${round(othersSum, 3)}` : "n/a",
     message:
       dominant && max
@@ -2260,4 +2287,24 @@ function logGamma(value: number): number {
 
   const t = z + coefficients.length - 0.5;
   return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+
+function calculateCorrelationMatrix(x: number[][], terms: DesignTerm[]): { labels: string[]; matrix: number[][] } {
+  const featureColumns = transpose(x).slice(1);
+  const labels = terms.map(t => t.label);
+  const matrix: number[][] = [];
+
+  for (let i = 0; i < featureColumns.length; i++) {
+    const row: number[] = [];
+    for (let j = 0; j < featureColumns.length; j++) {
+      if (i === j) {
+        row.push(1);
+      } else {
+        const corr = pearsonCorrelation(featureColumns[i] || [], featureColumns[j] || []);
+        row.push(corr);
+      }
+    }
+    matrix.push(row);
+  }
+  return { labels, matrix };
 }
