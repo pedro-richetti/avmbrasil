@@ -650,7 +650,7 @@ export function ProjectWorkspace() {
             onToggle={() => setSectionExpanded("models", !expandedSections.models)}
           >
             {modelRun ? (
-              <div className="two-column">
+              <div className="models-grid">
                 <div className="card inner-box">
                   <div className="panel-header">
                     <div>
@@ -849,14 +849,14 @@ function ModelDetail({
 }) {
   if (!candidate) {
     return (
-      <div className="panel">
+      <div className="panel inner-box">
         <h2>Detalhe do modelo</h2>
       </div>
     );
   }
 
   return (
-    <div className="panel">
+    <div className="panel inner-box">
       <div className="panel-header">
         <div>
           <h2>Detalhe do modelo</h2>
