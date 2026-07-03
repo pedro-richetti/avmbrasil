@@ -306,6 +306,13 @@ export function ProjectWorkspace() {
     printWindow.print();
   }
 
+  async function handleLogout() {
+    const { createClient } = await import("@/utils/supabase/client");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -335,6 +342,10 @@ export function ProjectWorkspace() {
           <button className="btn primary" disabled={status === "running"} onClick={runModeling}>
             <Play className="icon" />
             {status === "running" ? "Rodando" : "Rodar modelos"}
+          </button>
+          <div className="topbar-divider" />
+          <button className="btn" onClick={handleLogout}>
+            Sair
           </button>
         </div>
       </header>
