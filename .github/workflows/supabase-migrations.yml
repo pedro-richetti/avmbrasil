@@ -20,6 +20,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Required Secrets
+        run: |
+          MISSING_SECRETS=false
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "Error: SUPABASE_ACCESS_TOKEN is not set."
+            MISSING_SECRETS=true
+          fi
+          if [ -z "$SUPABASE_PROJECT_ID" ]; then
+            echo "Error: SUPABASE_PROJECT_ID is not set."
+            MISSING_SECRETS=true
+          fi
+          if [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "Error: SUPABASE_DB_PASSWORD is not set."
+            MISSING_SECRETS=true
+          fi
+          if [ "$MISSING_SECRETS" = "true" ]; then
+            echo ""
+            echo "====================================================================="
+            echo "One or more required secrets are missing!"
+            echo "Please configure the following as Repository Secrets in GitHub:"
+            echo "(Settings -> Secrets and variables -> Actions)"
+            echo "  - SUPABASE_ACCESS_TOKEN: Your Supabase Personal Access Token."
+            echo "  - SUPABASE_PROJECT_ID: Your Supabase Project Reference ID."
+            echo "  - SUPABASE_DB_PASSWORD: Your Supabase Database Password."
+            echo "====================================================================="
+            exit 1
+          fi
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
