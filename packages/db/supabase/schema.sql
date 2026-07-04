@@ -3,6 +3,14 @@ create extension if not exists "uuid-ossp";
 create type public.project_status as enum ('draft', 'modeling', 'review', 'approved', 'archived');
 create type public.member_role as enum ('owner', 'engineer', 'reviewer', 'viewer');
 
+create table public.user_profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  is_approved boolean not null default false,
+  role text not null default 'user',
+  created_at timestamptz not null default now()
+);
+
 create table public.organizations (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
@@ -92,6 +100,7 @@ create index on public.dataset_snapshots(project_id);
 create index on public.model_runs(project_id);
 create index on public.report_snapshots(project_id);
 
+alter table public.user_profiles enable row level security;
 alter table public.organizations enable row level security;
 alter table public.organization_memberships enable row level security;
 alter table public.projects enable row level security;
@@ -210,3 +219,29 @@ using (public.can_access_project(project_id));
 create policy "members can create report snapshots"
 on public.report_snapshots for insert
 with check (public.can_access_project(project_id));
+
+-- trigger to create a profile on signup
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.user_profiles (id, email, is_approved, role)
+  values (new.id, new.email, false, 'user');
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- User profiles RLS
+create policy "users can read own profile"
+on public.user_profiles for select
+using (auth.uid() = id);
+
+-- Note: The admin check is omitted to prevent infinite recursion.
+-- Supabase Dashboard uses the postgres/service_role which bypasses RLS naturally.
+-- If UI admin tools are added later, we should check admin status via auth.users metadata or a separate security definer function.
