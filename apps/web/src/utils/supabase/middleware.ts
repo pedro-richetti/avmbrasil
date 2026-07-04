@@ -32,15 +32,55 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  const isAuthRoute = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/auth");
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const isPendingApprovalRoute = request.nextUrl.pathname.startsWith("/pending-approval");
+
+  if (!user && !isAuthRoute && !isApiRoute) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  if (user && !isAuthRoute && !isApiRoute && !isPendingApprovalRoute) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('is_approved')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_approved) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/pending-approval";
+      const redirectResponse = NextResponse.redirect(url);
+
+      // Preserve auth tokens that were just refreshed
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return redirectResponse;
+    }
+  }
+
+  if (user && isPendingApprovalRoute) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('is_approved')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.is_approved) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      const redirectResponse = NextResponse.redirect(url);
+
+      // Preserve auth tokens that were just refreshed
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return redirectResponse;
+    }
   }
 
   return supabaseResponse;
