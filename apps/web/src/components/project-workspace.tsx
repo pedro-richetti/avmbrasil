@@ -28,9 +28,10 @@ import type {
   VariableKind,
   VariableRole
 } from "@avm/domain";
-import { parseDelimitedMarketData, rowsFromObjects } from "@/lib/imports";
+import { parseGridData, rowsFromObjects } from "@/lib/imports";
+import { DataGrid } from "./data-grid";
 import { formatCurrency, formatNumber, parseFormValue, valueToString } from "@/lib/format";
-import { sampleComparables, sampleCsv, sampleSubject, sampleVariables } from "@/lib/sample-data";
+import { sampleComparables, sampleSubject, sampleVariables } from "@/lib/sample-data";
 import { CriteriaModal } from "./criteria-modal";
 import type { RulePackCheck } from "@avm/domain";
 
@@ -80,8 +81,7 @@ export function ProjectWorkspace() {
   const [subject, setSubject] = useState<SubjectProperty>(sampleSubject);
   const [comparables, setComparables] = useState<MarketComparable[]>(sampleComparables);
   const [variables, setVariables] = useState<VariableDefinition[]>(sampleVariables);
-  const [csvText, setCsvText] = useState(sampleCsv);
-  const [modelRun, setModelRun] = useState<ModelRun | null>(null);
+    const [modelRun, setModelRun] = useState<ModelRun | null>(null);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [approvedCandidateId, setApprovedCandidateId] = useState<string | null>(null);
   const [report, setReport] = useState<ReportState | null>(null);
@@ -158,9 +158,10 @@ export function ProjectWorkspace() {
     setApprovedCandidateId(null);
   }
 
-  function importCsv() {
+
+  function handleGridSave(grid: string[][]) {
     try {
-      const parsed = parseDelimitedMarketData(csvText);
+      const parsed = parseGridData(grid);
       setComparables(parsed.comparables);
       setVariables(parsed.variables);
       setModelRun(null);
@@ -169,9 +170,10 @@ export function ProjectWorkspace() {
       setReport(null);
       setError(null);
     } catch (importError) {
-      setError(importError instanceof Error ? importError.message : "Falha ao importar CSV.");
+      setError(importError instanceof Error ? importError.message : "Falha ao ler dados da tabela.");
     }
   }
+
 
   async function importFile(file: File | null) {
     if (!file) {
@@ -482,15 +484,11 @@ export function ProjectWorkspace() {
                   </div>
                   <Upload className="icon" />
                 </div>
-                <div className="field">
-                  <label htmlFor="csv-import">CSV</label>
-                  <textarea id="csv-import" value={csvText} onChange={(event) => setCsvText(event.target.value)} />
+                <div className="field" style={{ overflowX: "auto" }}>
+                  <DataGrid initialRows={5} initialCols={5} onSave={handleGridSave} />
                 </div>
                 <div className="button-row" style={{ marginTop: 12 }}>
-                  <button className="btn" onClick={importCsv}>
-                    <Upload className="icon" />
-                    Importar CSV
-                  </button>
+                  {/* CSV import button removed to favor DataGrid */}
                   <label className="btn" htmlFor="file-import">
                     <FileDown className="icon" />
                     Importar planilha
