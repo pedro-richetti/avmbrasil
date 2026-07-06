@@ -35,7 +35,7 @@ export function CriteriaModal({ check, candidate, valuation, onClose }: Criteria
               <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Limiar: {check.threshold}</span>
             </div>
           </div>
-          <button className="nav-action" onClick={onClose} style={{ padding: 4 }}><X size={24} /></button>
+          <button className="nav-action" onClick={onClose} aria-label="Fechar modal" style={{ padding: 4 }}><X size={24} /></button>
         </div>
         <div style={{ padding: '20px' }}>
           <p style={{ marginBottom: 24, fontSize: '1rem', color: '#374151' }}>{check.message}</p>
