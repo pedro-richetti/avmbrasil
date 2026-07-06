@@ -31,7 +31,6 @@ import type {
 import { parseGridData, rowsFromObjects } from "@/lib/imports";
 import { DataGrid } from "./data-grid";
 import { formatCurrency, formatNumber, parseFormValue, valueToString } from "@/lib/format";
-import { sampleComparables, sampleSubject, sampleVariables } from "@/lib/sample-data";
 import { CriteriaModal } from "./criteria-modal";
 import type { RulePackCheck } from "@avm/domain";
 
@@ -78,9 +77,17 @@ function buildExpandedSections(expanded: boolean): Record<SectionId, boolean> {
 
 export function ProjectWorkspace() {
   const [project, setProject] = useState<ProjectState>(projectDefault);
-  const [subject, setSubject] = useState<SubjectProperty>(sampleSubject);
-  const [comparables, setComparables] = useState<MarketComparable[]>(sampleComparables);
-  const [variables, setVariables] = useState<VariableDefinition[]>(sampleVariables);
+  const [subject, setSubject] = useState<SubjectProperty>({
+    id: "subject-demo",
+    projectId: "project-demo",
+    address: "",
+    city: "",
+    state: "",
+    propertyType: "Apartamento",
+    values: {}
+  });
+  const [comparables, setComparables] = useState<MarketComparable[]>([]);
+  const [variables, setVariables] = useState<VariableDefinition[]>([]);
     const [modelRun, setModelRun] = useState<ModelRun | null>(null);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [approvedCandidateId, setApprovedCandidateId] = useState<string | null>(null);
@@ -507,30 +514,39 @@ export function ProjectWorkspace() {
                 <div className="panel-header">
                   <div>
                     <h3>Amostra</h3>
-                    <p>{columns.length} colunas normalizadas.</p>
+                    <p>{comparables.length > 0 ? `${columns.length} colunas normalizadas.` : "Aguardando dados da importação."}</p>
                   </div>
                   <Database className="icon" />
                 </div>
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        {columns.slice(0, 7).map((column) => (
-                          <th key={column}>{column}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comparables.slice(0, 6).map((row) => (
-                        <tr key={row.id}>
+                {comparables.length > 0 ? (
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
                           {columns.slice(0, 7).map((column) => (
-                            <td key={column}>{valueToString(row.values[column])}</td>
+                            <th key={column}>{column}</th>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {comparables.slice(0, 6).map((row) => (
+                          <tr key={row.id}>
+                            {columns.slice(0, 7).map((column) => (
+                              <td key={column}>{valueToString(row.values[column])}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div>
+                      <h3>Amostra vazia</h3>
+                      <p>Importe ou adicione dados na tabela para iniciar.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CollapsibleSection>
@@ -543,89 +559,98 @@ export function ProjectWorkspace() {
             expanded={expandedSections.variables}
             onToggle={() => setSectionExpanded("variables", !expandedSections.variables)}
           >
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Campo</th>
-                    <th>Papel</th>
-                    <th>Tipo</th>
-                    <th>Transformação base</th>
-                    <th>Sinal</th>
-                    <th>Obrigatória</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variables.map((variable) => (
-                    <tr key={variable.id}>
-                      <td>
-                        <strong>{variable.label}</strong>
-                        <br />
-                        <span className="status-pill">{variable.sourceField}</span>
-                        {variable.notes ? (
-                          <>
-                            <br />
-                            <span>{variable.notes}</span>
-                          </>
-                        ) : null}
-                      </td>
-                      <td>
-                        <select
-                          value={variable.role}
-                          onChange={(event) => updateVariable(variable.id, { role: event.target.value as VariableRole })}
-                        >
-                          <option value="target">Alvo</option>
-                          <option value="feature">Explicativa</option>
-                          <option value="excluded">Excluída</option>
-                        </select>
-                      </td>
-                      <td>
-                        <select
-                          value={variable.kind}
-                          onChange={(event) => updateVariable(variable.id, { kind: event.target.value as VariableKind })}
-                        >
-                          <option value="numeric">Numérica</option>
-                          <option value="binary">Binária</option>
-                          <option value="categorical">Categórica</option>
-                        </select>
-                      </td>
-                      <td>
-                        <select
-                          value={variable.transform}
-                          disabled={variable.kind === "categorical"}
-                          onChange={(event) => updateVariable(variable.id, { transform: event.target.value as TransformKind })}
-                        >
-                          <option value="none">Nenhuma</option>
-                          <option value="log">Log</option>
-                          <option value="sqrt">Raiz</option>
-                          <option value="square">Quadrado</option>
-                          <option value="inverse">Inversa</option>
-                        </select>
-                      </td>
-                      <td>
-                        <select
-                          value={variable.expectedSign ?? "none"}
-                          onChange={(event) =>
-                            updateVariable(variable.id, { expectedSign: event.target.value as ExpectedSign })
-                          }
-                        >
-                          <option value="none">Livre</option>
-                          <option value="positive">Positivo</option>
-                          <option value="negative">Negativo</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(variable.required)}
-                          onChange={(event) => updateVariable(variable.id, { required: event.target.checked })}
-                        />
-                      </td>
+            {variables.length > 0 ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Campo</th>
+                      <th>Papel</th>
+                      <th>Tipo</th>
+                      <th>Transformação base</th>
+                      <th>Sinal</th>
+                      <th>Obrigatória</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {variables.map((variable) => (
+                      <tr key={variable.id}>
+                        <td>
+                          <strong>{variable.label}</strong>
+                          <br />
+                          <span className="status-pill">{variable.sourceField}</span>
+                          {variable.notes ? (
+                            <>
+                              <br />
+                              <span>{variable.notes}</span>
+                            </>
+                          ) : null}
+                        </td>
+                        <td>
+                          <select
+                            value={variable.role}
+                            onChange={(event) => updateVariable(variable.id, { role: event.target.value as VariableRole })}
+                          >
+                            <option value="target">Alvo</option>
+                            <option value="feature">Explicativa</option>
+                            <option value="excluded">Excluída</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={variable.kind}
+                            onChange={(event) => updateVariable(variable.id, { kind: event.target.value as VariableKind })}
+                          >
+                            <option value="numeric">Numérica</option>
+                            <option value="binary">Binária</option>
+                            <option value="categorical">Categórica</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={variable.transform}
+                            disabled={variable.kind === "categorical"}
+                            onChange={(event) => updateVariable(variable.id, { transform: event.target.value as TransformKind })}
+                          >
+                            <option value="none">Nenhuma</option>
+                            <option value="log">Log</option>
+                            <option value="sqrt">Raiz</option>
+                            <option value="square">Quadrado</option>
+                            <option value="inverse">Inversa</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={variable.expectedSign ?? "none"}
+                            onChange={(event) =>
+                              updateVariable(variable.id, { expectedSign: event.target.value as ExpectedSign })
+                            }
+                          >
+                            <option value="none">Livre</option>
+                            <option value="positive">Positivo</option>
+                            <option value="negative">Negativo</option>
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(variable.required)}
+                            onChange={(event) => updateVariable(variable.id, { required: event.target.checked })}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div>
+                  <h3>Nenhuma variável</h3>
+                  <p>As variáveis serão inferidas automaticamente após a importação dos dados de mercado.</p>
+                </div>
+              </div>
+            )}
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -636,18 +661,27 @@ export function ProjectWorkspace() {
             expanded={expandedSections["subject-values"]}
             onToggle={() => setSectionExpanded("subject-values", !expandedSections["subject-values"])}
           >
-            <div className="form-grid">
-              {featureVariables.map((variable) => (
-                <div className="field" key={variable.id}>
-                  <label htmlFor={`subject-${variable.id}`}>{variable.label}</label>
-                  <input
-                    id={`subject-${variable.id}`}
-                    value={valueToString(subject.values[variable.sourceField])}
-                    onChange={(event) => updateSubjectValue(variable.sourceField, event.target.value)}
-                  />
+            {featureVariables.length > 0 ? (
+              <div className="form-grid">
+                {featureVariables.map((variable) => (
+                  <div className="field" key={variable.id}>
+                    <label htmlFor={`subject-${variable.id}`}>{variable.label}</label>
+                    <input
+                      id={`subject-${variable.id}`}
+                      value={valueToString(subject.values[variable.sourceField])}
+                      onChange={(event) => updateSubjectValue(variable.sourceField, event.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div>
+                  <h3>Aguardando dados</h3>
+                  <p>As variáveis explicativas aparecerão aqui após a importação dos dados.</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </CollapsibleSection>
 
           <CollapsibleSection
