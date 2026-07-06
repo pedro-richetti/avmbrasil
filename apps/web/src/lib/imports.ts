@@ -148,3 +148,60 @@ function expectedSignFor(header: string) {
 
   return "none" as const;
 }
+
+export function parseGridData(grid: string[][]): { comparables: MarketComparable[]; variables: VariableDefinition[] } {
+  // Find the first row that is not completely empty to use as headers
+  let headerRowIndex = -1;
+  for (let i = 0; i < grid.length; i++) {
+    if ((grid[i] || []).some((cell) => cell.trim() !== "")) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+
+  if (headerRowIndex === -1 || headerRowIndex === grid.length - 1) {
+    throw new Error("Tabela sem cabeçalho e/ou dados.");
+  }
+
+  const rawHeaders = grid[headerRowIndex] || [];
+
+  // Identify valid columns (where header is not empty)
+  const validColIndices: number[] = [];
+  rawHeaders.forEach((header, index) => {
+    if (header.trim() !== "") {
+      validColIndices.push(index);
+    }
+  });
+
+  if (validColIndices.length === 0) {
+    throw new Error("Tabela sem colunas válidas.");
+  }
+
+  const headers = validColIndices.map((i) => normalizeHeader(rawHeaders[i]!));
+
+  const comparables = grid.slice(headerRowIndex + 1).map((row, index) => {
+    const values: Record<string, DataValue> = {};
+
+    validColIndices.forEach((colIndex, headerIndex) => {
+      const header = headers[headerIndex];
+      const cellValue = row[colIndex] ?? "";
+      values[header!] = parseFormValue(cellValue);
+    });
+
+    return {
+      id: `grid-${index + 1}`,
+      source: "Tabela Interativa",
+      capturedAt: new Date().toISOString().slice(0, 10),
+      values
+    };
+  }).filter(comp => Object.values(comp.values).some(v => v !== null && v !== "")); // Filter out completely empty rows
+
+  if (comparables.length === 0) {
+    throw new Error("Tabela sem dados válidos.");
+  }
+
+  return {
+    comparables,
+    variables: inferVariables(comparables, headers)
+  };
+}
