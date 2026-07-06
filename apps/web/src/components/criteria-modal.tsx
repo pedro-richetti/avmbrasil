@@ -169,13 +169,14 @@ function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Variável</th><th>T de Student</th></tr>
+              <tr><th>Variável</th><th>T de Student</th><th>Significância</th></tr>
             </thead>
             <tbody>
               {extra.termTStatistics.map(t => (
                 <tr key={t.label} style={{ fontWeight: extra.tStudentDominant === t.label ? 'bold' : 'normal' }}>
                   <td>{t.label} {extra.tStudentDominant === t.label && "(Dominante)"}</td>
                   <td>{formatNumber(t.value)}</td>
+                  <td>{formatPercent(t.pValue)}</td>
                 </tr>
               ))}
             </tbody>
