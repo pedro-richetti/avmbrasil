@@ -149,7 +149,7 @@ export interface ExtraDiagnostics {
   fStatistic: number;
   fPValue: number;
   studentizedResidualsBands: Array<{ label: string; percent: number; min: number; max: number }>;
-  termTStatistics: Array<{ label: string; value: number }>;
+  termTStatistics: Array<{ label: string; value: number; pValue: number }>;
   tStudentDominant: string | null;
   expectedSignViolations: string[];
   heteroscedasticityR2: number;

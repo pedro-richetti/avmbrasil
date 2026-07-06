@@ -791,7 +791,7 @@ function evaluateDraftRules(
       fStatistic: fit.diagnostics.fStatistic,
       fPValue: fit.diagnostics.fPValue,
       studentizedResidualsBands: normality.bands || [],
-      termTStatistics: fit.termCoefficients.filter((c) => c.term !== "intercept").map(c => ({ label: c.label, value: c.tStatistic })),
+      termTStatistics: fit.termCoefficients.filter((c) => c.term !== "intercept").map(c => ({ label: c.label, value: c.tStatistic, pValue: c.pValue })),
       tStudentDominant: tDominance.dominantLabel || null,
       expectedSignViolations: signIssues,
       heteroscedasticityR2: heteroscedasticity.r2,
