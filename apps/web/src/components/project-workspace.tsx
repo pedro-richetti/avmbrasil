@@ -523,15 +523,15 @@ export function ProjectWorkspace() {
                     <table>
                       <thead>
                         <tr>
-                          {columns.slice(0, 7).map((column) => (
+                          {columns.map((column) => (
                             <th key={column}>{column}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {comparables.slice(0, 6).map((row) => (
+                        {comparables.map((row) => (
                           <tr key={row.id}>
-                            {columns.slice(0, 7).map((column) => (
+                            {columns.map((column) => (
                               <td key={column}>{valueToString(row.values[column])}</td>
                             ))}
                           </tr>
