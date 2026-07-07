@@ -708,14 +708,22 @@ export function ProjectWorkspace() {
                   </div>
                   <div className="candidate-list">
                     {modelRun.candidates.slice(0, 10).map((candidate) => (
-                      <button
+                      <div
                         key={candidate.id}
+                        role="button"
+                        tabIndex={0}
                         className={[
                           "candidate-card",
                           selectedCandidateId === candidate.id ? "selected" : "",
                           candidate.accepted ? "" : "rejected"
                         ].join(" ")}
                         onClick={() => setSelectedCandidateId(candidate.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedCandidateId(candidate.id);
+                          }
+                        }}
                       >
                         <div className="candidate-topline">
                           <strong>{candidate.accepted ? "Aceito" : "Rejeitado"}</strong>
@@ -742,7 +750,7 @@ export function ProjectWorkspace() {
                           <span className="metric-pill">RMSE {formatNumber(candidate.diagnostics.rmse, 0)}</span>
                           <span className="metric-pill">VIF {formatNumber(candidate.diagnostics.maxVif, 2)}</span>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>
