@@ -98,6 +98,7 @@ export function ProjectWorkspace() {
   const [expandedSections, setExpandedSections] = useState<Record<SectionId, boolean>>(() => buildExpandedSections(true));
   const [analyzedCheck, setAnalyzedCheck] = useState<RulePackCheck | null>(null);
   const [scoreBreakdownCandidate, setScoreBreakdownCandidate] = useState<CandidateModel | null>(null);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
 
   const selectedCandidate = useMemo(
     () => modelRun?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null,
@@ -697,7 +698,12 @@ export function ProjectWorkspace() {
                 <div className="card inner-box">
                   <div className="panel-header">
                     <div>
-                      <h3>Modelos candidatos</h3>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        Modelos candidatos
+                        <button className="icon-button" onClick={() => setShowMethodologyModal(true)} title="Entender metodologia de seleção" style={{ padding: 0, background: "transparent", border: "none" }}>
+                          <Info className="icon" style={{ width: "16px", height: "16px", color: "inherit", cursor: "pointer" }} />
+                        </button>
+                      </h3>
                       <p>
                         {acceptedCount} aceitos de {modelRun.candidates.length} avaliados.
                       </p>
@@ -957,6 +963,73 @@ export function ProjectWorkspace() {
             </div>
           </div>
         )}
+
+        {showMethodologyModal && (
+          <div className="modal-backdrop" onClick={() => setShowMethodologyModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "700px", maxHeight: "90vh", overflowY: "auto" }}>
+              <div className="modal-header">
+                <h2>Metodologia de Seleção e Score</h2>
+                <button className="icon-button" onClick={() => setShowMethodologyModal(false)}>
+                  <XCircle className="icon" />
+                </button>
+              </div>
+              <div className="modal-body" style={{ color: "#334155", fontSize: "0.875rem", lineHeight: "1.6" }}>
+                <h3 style={{ fontSize: "1rem", fontWeight: 600, marginTop: "0", marginBottom: "0.5rem" }}>Geração de Modelos e Poda de Combinações</h3>
+                <p style={{ marginBottom: "1rem" }}>
+                  O motor de avaliação testa automaticamente inúmeras combinações de variáveis explicativas e transformações para encontrar a melhor equação. O algoritmo de geração funciona da seguinte forma:
+                </p>
+                <ul style={{ paddingLeft: "1.5rem", marginBottom: "1.5rem" }}>
+                  <li style={{ marginBottom: "0.5rem" }}><strong>Triagem Univariada de Transformações:</strong> Para evitar explosão combinatória, antes de testar os modelos múltiplos, cada transformação (log, raiz, inverso, etc.) é testada univariadamente contra a variável alvo. Apenas transformações que mostram correlação linear razoável com a variável alvo são selecionadas como <em>candidatas</em> para participar dos modelos, as demais são podadas prematuramente.</li>
+                  <li style={{ marginBottom: "0.5rem" }}><strong>Limites de Variáveis:</strong> São testados subconjuntos de variáveis respeitando os limites mínimo e máximo configurados. Variáveis marcadas como <em>Obrigatórias</em> estão presentes em todos os modelos.</li>
+                  <li style={{ marginBottom: "0.5rem" }}><strong>Descarte por Limite de Combinações:</strong> Para manter a performance, a busca é limitada a um número máximo de combinações (por padrão 240). Se o espaço de busca (todas as transformações de todas as variáveis opcionais) for maior que esse limite, apenas um subconjunto dessas combinações será avaliado e os demais modelos nem chegam a ser computados.</li>
+                </ul>
+
+                <h3 style={{ fontSize: "1rem", fontWeight: 600, marginTop: "1.5rem", marginBottom: "0.5rem" }}>Como o Score é Calculado</h3>
+                <p style={{ marginBottom: "1rem" }}>
+                  Cada modelo gerado passa por uma regressão linear múltipla (OLS) e por uma checagem de regras da NBR 14653-2. O Score define o ranqueamento dos modelos e é calculado a partir de uma base, somando bônus para modelos aceitos, e subtraindo penalidades para anomalias estatísticas ou de regras normativas.
+                </p>
+                <div style={{ padding: "1rem", backgroundColor: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.5rem", fontFamily: "monospace" }}>
+                  Score = Base + Bônus Aceitação - Pen. Intervalo - Pen. Complexidade - Pen. VIF - Pen. AIC - Pen. Alertas - Pen. Falhas
+                </div>
+
+                <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <li>
+                    <strong>Base:</strong> Derivada do <em>R² ajustado (ajustado para escala 1-100)</em> descontando uma fração do erro médio (RMSE). Privilegia modelos com maior poder de explicação e menor erro.
+                  </li>
+                  <li>
+                    <strong>Bônus de Aceitação:</strong> Modelos que passam em todas as regras essenciais da NBR recebem um bônus alto (+1000). Modelos reprovados sofrem penalidade profunda (-1000) para ficarem no fim da fila.
+                  </li>
+                  <li>
+                    <strong>Penalidade de Intervalo:</strong> Punição proporcional à amplitude do intervalo de confiança da estimativa de valor do imóvel avaliando. Beneficia equações que geram estimativas mais precisas.
+                  </li>
+                  <li>
+                    <strong>Penalidade de Complexidade:</strong> Penaliza o número de termos na equação. Em caso de empate de qualidade, modelos mais simples (com menos variáveis) recebem um score maior (Navalha de Ockham).
+                  </li>
+                  <li>
+                    <strong>Penalidade VIF (Colinearidade):</strong> Punição que cresce progressivamente se o <em>Variance Inflation Factor (VIF)</em> máximo do modelo for superior a 1. Reduz o score de modelos onde variáveis explicativas explicam a si mesmas.
+                  </li>
+                  <li>
+                    <strong>Penalidade AIC:</strong> Leve penalidade baseada no <em>Critério de Informação de Akaike</em>, ajudando no desempate penalizando o excesso de parâmetros versus a qualidade do ajuste empírico.
+                  </li>
+                  <li>
+                    <strong>Penalidades Normativas (Regras):</strong> Cada alerta (warning) na checagem da NBR subtrai 6 pontos, e cada falha (fail) subtrai 30 pontos adicionais, distanciando modelos menos aderentes à norma dos modelos ideais.
+                  </li>
+                </ul>
+
+                <h3 style={{ fontSize: "1rem", fontWeight: 600, marginTop: "1.5rem", marginBottom: "0.5rem" }}>Por que não vejo alguns modelos?</h3>
+                <p style={{ marginBottom: "0" }}>
+                  Modelos que combinam certas transformações (ex: <em>Log(Área) + Raiz(Frente)</em>) podem não aparecer na lista final por dois principais motivos: ou uma das transformações foi podada na etapa univariada por possuir correlação insignificante isoladamente (ajudando a evitar overfitting), ou a combinação específica excedeu o limite máximo de combinações simultâneas testadas pela busca algorítmica.
+                </p>
+              </div>
+              <div className="modal-footer" style={{ justifyContent: "flex-end", marginTop: "16px" }}>
+                <button className="button" onClick={() => setShowMethodologyModal(false)}>
+                  Entendi
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </main>
   );
