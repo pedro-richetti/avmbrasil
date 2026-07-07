@@ -12,6 +12,7 @@ import {
   Database,
   FileDown,
   FileText,
+  Info,
   Play,
   Settings2,
   Upload,
@@ -96,6 +97,7 @@ export function ProjectWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<SectionId, boolean>>(() => buildExpandedSections(true));
   const [analyzedCheck, setAnalyzedCheck] = useState<RulePackCheck | null>(null);
+  const [scoreBreakdownCandidate, setScoreBreakdownCandidate] = useState<CandidateModel | null>(null);
 
   const selectedCandidate = useMemo(
     () => modelRun?.candidates.find((candidate) => candidate.id === selectedCandidateId) ?? null,
@@ -720,6 +722,19 @@ export function ProjectWorkspace() {
                           <span className={candidate.accepted ? "status-pill success" : "status-pill warn"}>
                             {candidate.accepted ? <CheckCircle2 className="icon" /> : <XCircle className="icon" />}
                             Score {formatNumber(candidate.score, 1)}
+                            {candidate.scoreBreakdown && (
+                              <button
+                                className="icon-button"
+                                style={{ marginLeft: "4px", padding: 0, background: "transparent", border: "none" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setScoreBreakdownCandidate(candidate);
+                                }}
+                                title="Ver composição do score"
+                              >
+                                <Info className="icon" style={{ width: "14px", height: "14px", color: "inherit", cursor: "pointer" }} />
+                              </button>
+                            )}
                           </span>
                         </div>
                         <div className="candidate-metrics">
@@ -823,6 +838,85 @@ export function ProjectWorkspace() {
           valuation={selectedCandidate?.valuation}
           onClose={() => setAnalyzedCheck(null)}
         />
+
+        {scoreBreakdownCandidate && scoreBreakdownCandidate.scoreBreakdown && (
+          <div className="modal-backdrop" onClick={() => setScoreBreakdownCandidate(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
+              <div className="modal-header">
+                <h2>Composição do Score</h2>
+                <button className="icon-button" onClick={() => setScoreBreakdownCandidate(null)}>
+                  <XCircle className="icon" />
+                </button>
+              </div>
+              <div className="modal-body">
+                <p style={{ marginBottom: "1rem" }}>
+                  Score total do modelo: <strong>{formatNumber(scoreBreakdownCandidate.scoreBreakdown.total, 1)}</strong>
+                </p>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fator</th>
+                      <th className="align-right">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Base (R² aj. e RMSE)</td>
+                      <td className="align-right">{formatNumber(scoreBreakdownCandidate.scoreBreakdown.base, 4)}</td>
+                    </tr>
+                    {scoreBreakdownCandidate.scoreBreakdown.acceptanceBonus !== 0 && (
+                      <tr>
+                        <td>Bônus de Aceitação</td>
+                        <td className="align-right">{formatNumber(scoreBreakdownCandidate.scoreBreakdown.acceptanceBonus, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.intervalPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade de Intervalo</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.intervalPenalty, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.complexityPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade de Complexidade</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.complexityPenalty, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.vifPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade VIF</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.vifPenalty, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.informationPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade AIC</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.informationPenalty, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.warningsPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade Alertas (Regras)</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.warningsPenalty, 4)}</td>
+                      </tr>
+                    )}
+                    {scoreBreakdownCandidate.scoreBreakdown.failedChecksPenalty !== 0 && (
+                      <tr>
+                        <td>Penalidade Falhas (Regras)</td>
+                        <td className="align-right">{formatNumber(-scoreBreakdownCandidate.scoreBreakdown.failedChecksPenalty, 4)}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer" style={{ justifyContent: "flex-end", marginTop: "16px" }}>
+                <button className="button" onClick={() => setScoreBreakdownCandidate(null)}>
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
