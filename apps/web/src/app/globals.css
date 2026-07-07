@@ -511,6 +511,8 @@ tr:last-child td {
   background: white;
   padding: 12px;
   text-align: left;
+  cursor: pointer;
+  outline: none;
 }
 
 .candidate-card.selected {
