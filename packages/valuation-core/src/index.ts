@@ -8,6 +8,7 @@ import type {
   ModelRun,
   RulePack,
   RulePackCheck,
+  ScoreBreakdown,
   SubjectProperty,
   TermCoefficient,
   TransformKind,
@@ -238,7 +239,7 @@ function buildCandidate(input: {
     const { checks: ruleChecks, extraDiagnostics } = evaluateDraftRules(fit, valuation, input.subjectValues);
     const rejectionReasons = ruleChecks.filter((check) => check.status === "fail").map((check) => check.message);
     const accepted = rejectionReasons.length === 0;
-    const score = scoreCandidate(fit, accepted, valuation, ruleChecks);
+    const { total: score, breakdown: scoreBreakdown } = scoreCandidate(fit, accepted, valuation, ruleChecks);
     const candidate: CandidateModel = {
       id: candidateId,
       equation: formatEquation(input.target, fit),
@@ -250,7 +251,8 @@ function buildCandidate(input: {
       coefficients: fit.termCoefficients,
       diagnostics: fit.diagnostics,
       diagnosticPoints: fit.diagnosticPoints,
-      extraDiagnostics
+      extraDiagnostics,
+      scoreBreakdown
     };
 
     if (valuation) {
@@ -1259,7 +1261,7 @@ function predictSubjectValue(fit: FittedModel, subjectValues: SubjectProperty["v
   };
 }
 
-function scoreCandidate(fit: FittedModel, accepted: boolean, valuation: ValuationInterval | undefined, ruleChecks: RulePackCheck[]): number {
+function scoreCandidate(fit: FittedModel, accepted: boolean, valuation: ValuationInterval | undefined, ruleChecks: RulePackCheck[]): { total: number, breakdown: ScoreBreakdown } {
   const failedChecks = ruleChecks.filter((check) => check.status === "fail").length;
   const warnings = ruleChecks.filter((check) => check.status === "warn").length;
   const intervalPenalty =
@@ -1269,7 +1271,25 @@ function scoreCandidate(fit: FittedModel, accepted: boolean, valuation: Valuatio
   const informationPenalty = Math.max(0, fit.diagnostics.aic) * 0.01;
   const base = fit.diagnostics.adjustedR2 * 100 - fit.diagnostics.rmse * 0.0001;
 
-  return round((accepted ? 1000 : -1000) + base - intervalPenalty - complexityPenalty - vifPenalty - informationPenalty - warnings * 6 - failedChecks * 30, 4);
+  const acceptanceBonus = accepted ? 1000 : -1000;
+  const warningsPenalty = warnings * 6;
+  const failedChecksPenalty = failedChecks * 30;
+  const total = round(acceptanceBonus + base - intervalPenalty - complexityPenalty - vifPenalty - informationPenalty - warningsPenalty - failedChecksPenalty, 4);
+
+  return {
+    total,
+    breakdown: {
+      base: round(base, 4),
+      acceptanceBonus,
+      intervalPenalty: round(intervalPenalty, 4),
+      complexityPenalty: round(complexityPenalty, 4),
+      vifPenalty: round(vifPenalty, 4),
+      informationPenalty: round(informationPenalty, 4),
+      warningsPenalty: round(warningsPenalty, 4),
+      failedChecksPenalty: round(failedChecksPenalty, 4),
+      total
+    }
+  };
 }
 
 function buildTargetCandidates(input: {

@@ -159,6 +159,18 @@ export interface ExtraDiagnostics {
   projectionInflexionTerms: string[];
 }
 
+export interface ScoreBreakdown {
+  base: number;
+  acceptanceBonus: number;
+  intervalPenalty: number;
+  complexityPenalty: number;
+  vifPenalty: number;
+  informationPenalty: number;
+  warningsPenalty: number;
+  failedChecksPenalty: number;
+  total: number;
+}
+
 export interface CandidateModel {
   id: EntityId;
   equation: string;
@@ -172,6 +184,7 @@ export interface CandidateModel {
   diagnosticPoints: DiagnosticPoint[];
   valuation?: ValuationInterval;
   extraDiagnostics?: ExtraDiagnostics;
+  scoreBreakdown?: ScoreBreakdown;
 }
 
 export interface ModelRun {
