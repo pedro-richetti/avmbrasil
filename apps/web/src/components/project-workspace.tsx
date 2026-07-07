@@ -914,6 +914,40 @@ export function ProjectWorkspace() {
                     )}
                   </tbody>
                 </table>
+
+                <div style={{ marginTop: "1.5rem", padding: "1rem", backgroundColor: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                  <h3 style={{ fontSize: "0.875rem", fontWeight: 600, color: "#334155", marginBottom: "0.75rem" }}>Memória de Cálculo</h3>
+
+                  <div style={{ fontSize: "0.875rem", color: "#475569", lineHeight: "1.6", fontFamily: "monospace" }}>
+                    <div style={{ marginBottom: "0.5rem" }}>
+                      <strong>Fórmula:</strong><br />
+                      Score = Base + Bônus Aceitação - Pen. Intervalo - Pen. Complexidade - Pen. VIF - Pen. AIC - Pen. Alertas - Pen. Falhas
+                    </div>
+
+                    <div style={{ marginBottom: "0.5rem", wordBreak: "break-all" }}>
+                      <strong>Valores:</strong><br />
+                      Score = {formatNumber(scoreBreakdownCandidate.scoreBreakdown.base, 4)}
+                      {scoreBreakdownCandidate.scoreBreakdown.acceptanceBonus >= 0 ? ' + ' : ' - '}
+                      {formatNumber(Math.abs(scoreBreakdownCandidate.scoreBreakdown.acceptanceBonus), 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.intervalPenalty, 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.complexityPenalty, 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.vifPenalty, 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.informationPenalty, 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.warningsPenalty, 4)}
+                      {' - '}
+                      {formatNumber(scoreBreakdownCandidate.scoreBreakdown.failedChecksPenalty, 4)}
+                    </div>
+
+                    <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid #cbd5e1", fontWeight: 600, color: "#0f172a" }}>
+                      <strong>Score Final:</strong> {formatNumber(scoreBreakdownCandidate.scoreBreakdown.total, 4)}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="modal-footer" style={{ justifyContent: "flex-end", marginTop: "16px" }}>
                 <button className="button" onClick={() => setScoreBreakdownCandidate(null)}>
