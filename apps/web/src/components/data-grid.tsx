@@ -91,6 +91,7 @@ export function DataGrid({ initialRows = 10, initialCols = 5, onSave }: DataGrid
                     type="button"
                     onClick={() => removeColumn(colIndex)}
                     title="Remover Coluna"
+                    aria-label="Remover Coluna"
                     style={{ background: "transparent", border: "none", cursor: "pointer", padding: 2, display: "flex" }}
                   >
                     <Trash2 size={12} color="#999" />
@@ -103,6 +104,7 @@ export function DataGrid({ initialRows = 10, initialCols = 5, onSave }: DataGrid
                   type="button"
                   onClick={addColumn}
                   title="Adicionar Coluna"
+                  aria-label="Adicionar Coluna"
                   className="btn"
                   style={{ padding: "4px", minWidth: "unset" }}
                 >
@@ -121,6 +123,7 @@ export function DataGrid({ initialRows = 10, initialCols = 5, onSave }: DataGrid
                     type="button"
                     onClick={() => removeRow(rowIndex)}
                     title="Remover Linha"
+                    aria-label="Remover Linha"
                     style={{ background: "transparent", border: "none", cursor: "pointer", padding: 2, display: "flex" }}
                   >
                     <Trash2 size={12} color="#999" />
