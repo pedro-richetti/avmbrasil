@@ -484,72 +484,70 @@ export function ProjectWorkspace() {
             expanded={expandedSections["market-data"]}
             onToggle={() => setSectionExpanded("market-data", !expandedSections["market-data"])}
           >
-            <div className="two-column">
-              <div className="card inner-box">
-                <div className="panel-header">
-                  <div>
-                    <h3>Importação</h3>
-                    <p>Dados comparáveis usados na modelagem.</p>
-                  </div>
-                  <Upload className="icon" />
+            <div className="card inner-box">
+              <div className="panel-header">
+                <div>
+                  <h3>Importação</h3>
+                  <p>Dados comparáveis usados na modelagem.</p>
                 </div>
-                <div className="field" style={{ overflowX: "auto" }}>
-                  <DataGrid initialRows={5} initialCols={5} onSave={handleGridSave} />
-                </div>
-                <div className="button-row" style={{ marginTop: 12 }}>
-                  {/* CSV import button removed to favor DataGrid */}
-                  <label className="btn" htmlFor="file-import">
-                    <FileDown className="icon" />
-                    Importar planilha
-                  </label>
-                  <input
-                    id="file-import"
-                    type="file"
-                    accept=".xlsx"
-                    style={{ display: "none" }}
-                    onChange={(event) => void importFile(event.target.files?.[0] ?? null)}
-                  />
-                </div>
+                <Upload className="icon" />
               </div>
+              <div className="field" style={{ overflowX: "auto" }}>
+                <DataGrid initialRows={5} initialCols={5} onSave={handleGridSave} />
+              </div>
+              <div className="button-row" style={{ marginTop: 12 }}>
+                {/* CSV import button removed to favor DataGrid */}
+                <label className="btn" htmlFor="file-import">
+                  <FileDown className="icon" />
+                  Importar planilha
+                </label>
+                <input
+                  id="file-import"
+                  type="file"
+                  accept=".xlsx"
+                  style={{ display: "none" }}
+                  onChange={(event) => void importFile(event.target.files?.[0] ?? null)}
+                />
+              </div>
+            </div>
 
-              <div className="card inner-box">
-                <div className="panel-header">
-                  <div>
-                    <h3>Amostra</h3>
-                    <p>{comparables.length > 0 ? `${columns.length} colunas normalizadas.` : "Aguardando dados da importação."}</p>
-                  </div>
-                  <Database className="icon" />
+            <div className="card inner-box">
+              <div className="panel-header">
+                <div>
+                  <h3>Amostra</h3>
+                  <p>{comparables.length > 0 ? `${columns.length} colunas normalizadas.` : "Aguardando dados da importação."}</p>
                 </div>
-                {comparables.length > 0 ? (
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
+                <Database className="icon" />
+              </div>
+              {comparables.length > 0 ? (
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        {columns.map((column) => (
+                          <th key={column}>{column}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comparables.map((row) => (
+                        <tr key={row.id}>
                           {columns.map((column) => (
-                            <th key={column}>{column}</th>
+                            <td key={column}>{valueToString(row.values[column])}</td>
                           ))}
                         </tr>
-                      </thead>
-                      <tbody>
-                        {comparables.map((row) => (
-                          <tr key={row.id}>
-                            {columns.map((column) => (
-                              <td key={column}>{valueToString(row.values[column])}</td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <div>
+                    <h3>Amostra vazia</h3>
+                    <p>Importe ou adicione dados na tabela para iniciar.</p>
                   </div>
-                ) : (
-                  <div className="empty-state">
-                    <div>
-                      <h3>Amostra vazia</h3>
-                      <p>Importe ou adicione dados na tabela para iniciar.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </CollapsibleSection>
 
