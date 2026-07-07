@@ -1,21 +1,17 @@
 
-> br-avm-mvp@0.1.0 dev
-> npm run dev -w @avm/web
-
-
 > @avm/web@0.1.0 dev
 > next dev
 
 ▲ Next.js 16.2.9 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 556ms
+✓ Ready in 544ms
 Attention: Next.js now collects completely anonymous telemetry regarding usage.
 This information is used to shape Next.js' roadmap and prioritize features.
 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
 https://nextjs.org/telemetry
 
 
-○ Compiling / ...
- GET / 200 in 4.3s (next.js: 4.0s, application-code: 385ms)
- POST /api/model-runs 200 in 1469ms (next.js: 913ms, application-code: 556ms)
+○ Compiling /login ...
+ GET /login 200 in 4.6s (next.js: 3.9s, proxy.ts: 27ms, application-code: 593ms)
+ GET /login 200 in 90ms (next.js: 7ms, proxy.ts: 10ms, application-code: 74ms)
