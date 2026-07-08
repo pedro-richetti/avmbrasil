@@ -111,6 +111,19 @@ function CriteriaContent({ check, candidate, valuation }: { check: RulePackCheck
     case "micronumerosity":
       return (
         <div>
+          <div style={{ backgroundColor: '#f9fafb', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '16px', fontSize: '0.9rem', color: '#374151' }}>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>Critérios considerados na verificação (Micronumerosidade):</p>
+            <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px' }}>
+              <li>Se <strong>n &le; 30</strong>, então <strong>n<sub>i</sub> &ge; 3</strong></li>
+              <li>Se <strong>30 &lt; n &le; 100</strong>, então <strong>n<sub>i</sub> &ge; 10% n</strong></li>
+              <li>Se <strong>n &gt; 100</strong>, então <strong>n<sub>i</sub> &ge; 10</strong></li>
+            </ul>
+            <p style={{ margin: '0' }}>Onde:</p>
+            <ul style={{ margin: '0', paddingLeft: '20px' }}>
+              <li><strong>n</strong> = número total de dados habilitados do modelo</li>
+              <li><strong>n<sub>i</sub></strong> = número de dados de mesma característica (no caso de variáveis dicotômicas ou códigos alocados/ajustados)</li>
+            </ul>
+          </div>
           {extra.micronumerosityViolations.length > 0 ? (
             <ul style={{ listStyleType: 'disc', paddingLeft: 20 }}>
               {extra.micronumerosityViolations.map(d => <li key={d}>{d}</li>)}

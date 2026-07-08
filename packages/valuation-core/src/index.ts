@@ -533,7 +533,7 @@ function evaluateDraftRules(
         micronumerosity.violations.length === 0
           ? micronumerosity.checkedGroups === 0
             ? "Sem variáveis dicotômicas/códigos alocados no modelo."
-            : "Categorias atendem aos mínimos da Tabela 1."
+            : "Categorias atendem aos critérios mínimos de micronumerosidade."
           : `Micronumerosidade detectada: ${micronumerosity.violations.join("; ")}.`,
       value: micronumerosity.checkedGroups,
       threshold: micronumerosity.threshold
