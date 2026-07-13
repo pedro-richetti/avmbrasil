@@ -159,6 +159,8 @@ export function DataGrid({ initialRows = 10, initialCols = 5, onSave }: DataGrid
             <td colSpan={(grid[0]?.length || 0) + 1} style={{ border: "none", paddingTop: "8px", textAlign: "center" }}>
               <button
                 type="button"
+                aria-label="Adicionar Linha"
+                title="Adicionar Linha"
                 onClick={addRow}
                 className="btn"
                 style={{ padding: "4px 8px" }}
