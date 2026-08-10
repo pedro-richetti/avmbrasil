@@ -1,0 +1,3 @@
+## 2024-11-20 - Missing ARIA Labels on Icon-only Buttons
+**Learning:** `lucide-react` icons are often placed within standard `.icon-button` buttons with no textual content. By default, these buttons provide no context to screen readers since they have no inner text, violating accessibility guidelines for screen reader users. The app specifically uses Portuguese terminology, so ARIA labels should match the context (e.g. `Entender metodologia de seleção`).
+**Action:** When working on UI enhancements or adding new interactive elements using icon-only buttons, always ensure an `aria-label` is set matching the Portuguese context.
