@@ -1,0 +1,3 @@
+## 2024-03-22 - Icon-only Button Accessibility
+**Learning:** The application uses a custom `icon-button` class for small, icon-only buttons (like info or close buttons). These lack text nodes and screen reader visibility if not explicitly labelled.
+**Action:** When adding or encountering `<button className="icon-button">` elements, always ensure they have descriptive `aria-label` attributes in Portuguese.
