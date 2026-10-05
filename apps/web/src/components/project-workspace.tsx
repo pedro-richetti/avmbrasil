@@ -700,7 +700,7 @@ export function ProjectWorkspace() {
                     <div>
                       <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         Modelos candidatos
-                        <button className="icon-button" onClick={() => setShowMethodologyModal(true)} title="Entender metodologia de seleção" style={{ padding: 0, background: "transparent", border: "none" }}>
+                        <button className="icon-button" onClick={() => setShowMethodologyModal(true)} title="Entender metodologia de seleção" aria-label="Entender metodologia de seleção" style={{ padding: 0, background: "transparent", border: "none" }}>
                           <Info className="icon" style={{ width: "16px", height: "16px", color: "inherit", cursor: "pointer" }} />
                         </button>
                       </h3>
@@ -743,6 +743,7 @@ export function ProjectWorkspace() {
                                   setScoreBreakdownCandidate(candidate);
                                 }}
                                 title="Ver composição do score"
+                                aria-label="Ver composição do score"
                               >
                                 <Info className="icon" style={{ width: "14px", height: "14px", color: "inherit", cursor: "pointer" }} />
                               </button>
@@ -856,7 +857,7 @@ export function ProjectWorkspace() {
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
               <div className="modal-header">
                 <h2>Composição do Score</h2>
-                <button className="icon-button" onClick={() => setScoreBreakdownCandidate(null)}>
+                <button className="icon-button" onClick={() => setScoreBreakdownCandidate(null)} aria-label="Fechar modal">
                   <XCircle className="icon" />
                 </button>
               </div>
@@ -969,7 +970,7 @@ export function ProjectWorkspace() {
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "700px", maxHeight: "90vh", overflowY: "auto" }}>
               <div className="modal-header">
                 <h2>Metodologia de Seleção e Score</h2>
-                <button className="icon-button" onClick={() => setShowMethodologyModal(false)}>
+                <button className="icon-button" onClick={() => setShowMethodologyModal(false)} aria-label="Fechar modal">
                   <XCircle className="icon" />
                 </button>
               </div>
